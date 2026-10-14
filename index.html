@@ -70,7 +70,10 @@
         let jsonText = localStorage.getItem('typingData');
         // typingDataが存在しない場合はnullとなる
         const typingData = JSON.parse(jsonText) || {};
-        typingData.now="todo";
+    
+        if(typingData.now!=="doing"){
+            typingData.now==="todo";
+        }
 
         const updateRecentRecord = () => {
 
