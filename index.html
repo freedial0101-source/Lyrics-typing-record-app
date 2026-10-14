@@ -1,0 +1,274 @@
+<!-- ここからHTML画面 -->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>タイピングトレーニングの記録アプリ(ローカルストレージ版)</title>
+
+</head>
+
+<body>
+
+
+    <div>
+        <h2 id="recentRecord"></h2>
+    </div>
+
+    <h3>トレーニング開始時に入力</h3>
+    <label>曲名: <input type="text" name="title" id="title"></label>
+    <label for="health">体調:</label>
+    <select name="health" id="health">
+        <option value="問題なし">問題なし</option>
+        <option value="やや悪い">やや悪い（軽い寝不足など）</option>
+        <option value="悪い">悪い（かなり寝不足、大きなショック）</option>
+    </select>
+    <button type="button" id="start">スタート！</button>
+
+
+    <!-- ここに処理結果の表示 -->
+    <!-- <h4> 処理結果1:</h4> -->
+    <div id="result1" style="padding: 10px; background: #f0f0f0;"></div>
+    <!-- どのような表示になるか確認してから変更する -->
+
+    <hr>
+    <h3>トレーニング終了時に入力</h3>
+
+    <label>速さ: <input type="text" id="speed">key/s</label>
+    <label>正確性: <input type="text" id="accuracy">%</label>
+
+    <form id="form2">
+        <input type="hidden" id="localData" name="localData">
+        <button type="submit" id="stop-button">ストップ！</button>
+    </form>
+
+    <!-- ここに処理結果を表示 -->
+    <!-- <h4> 処理結果2:</h4> -->
+    <div id="result2" style="padding: 10px; background: #f0f0f0;"></div>
+    <!-- どのような表示になるか確認してから変更する -->
+    <hr>
+
+
+
+    <hr>
+    <button id="delete-btn">前回および挑戦中の記録を消す</button>
+    <button id="delete-all-btn">すべての記録を消す</button>
+    <button id="record-btn">記録を表示する</button>
+    <div id="record-area"></div>
+
+    <script>
+        // localStorage.removeItem('typingData');
+
+        let jsonTextAll = localStorage.getItem('typingDataAll');
+        console.log(jsonTextAll);
+        if (!jsonTextAll) {
+            jsonTextAll = "[]";
+        }
+
+
+        const recentRecord = document.getElementById("recentRecord");
+        let jsonText = localStorage.getItem('typingData');
+        // typingDataが存在しない場合はnullとなる
+        const typingData = JSON.parse(jsonText) || {};
+        typingData.now="todo";
+
+        const updateRecentRecord = () => {
+
+            if (jsonText !== null) {
+                if (typingData.now == "done") {
+                    recentRecord.innerText = `前回の記録:『${typingData.title}』${typingData.speed}key/s,${typingData.accuracy}%(${typingData.date}に挑戦)`;
+                } else {
+                    recentRecord.innerText = `『${typingData.title}』に挑戦中(${typingData.date}${typingData.start}開始)`;
+                }
+            } else {
+                recentRecord.innerText = "（ローカルストレージに記録はありません）";
+            }
+        }
+        updateRecentRecord();
+
+
+
+
+
+        const result1 = document.getElementById('result1');
+        const result2 = document.getElementById('result2');
+        const title = document.getElementById('title');
+        const health = document.getElementById('health');
+        const speed = document.getElementById('speed');
+        const accuracy = document.getElementById('accuracy');
+
+        const localData = document.getElementById('localData');
+
+
+        const deleteBtn = document.getElementById('delete-btn');
+        const deleteAllBtn = document.getElementById('delete-all-btn');
+        deleteBtn.addEventListener("click", () => {
+            if (!jsonText) {
+                alert("前回のデータは残っていませんでした");
+                return;
+            }
+            let result = confirm("前回および挑戦中のデータを消しますか？");
+            if (result) {
+                localStorage.removeItem('typingData');
+                jsonText="";
+                typingData.now="todo";
+                alert("前回のデータを消しました");
+            } else {
+                alert("キャンセルしました");
+            }
+        })
+
+        deleteAllBtn.addEventListener("click", () => {
+            if (jsonTextAll == "[]") {
+                alert("前回のデータは残っていませんでした");
+                
+            } else {
+                let result = confirm("全てのデータを消しますか？");
+                if (result) {
+                    localStorage.removeItem('typingData');
+                    localStorage.removeItem('typingDataAll');
+                    jsonText="";
+                    jsonTextAll = "[]";
+                    alert("全てのデータを消しました");
+                } else {
+                    alert("キャンセルしました");
+                }
+            }
+        });
+
+
+        // ボタン1が押されたとき
+        document.getElementById('start').addEventListener('click', () => {
+            // 挑戦中かどうかの判定は後
+
+
+            const now = new Date();
+            const datePart = now.toLocaleDateString('sv-SE');
+            const timePart = now.toLocaleTimeString('ja-JP', {
+                hour12: false
+            });
+            const updateAtStart = () => {
+                typingData.now = "doing";
+                typingData.title = title.value;
+                typingData.health = health.value;
+                typingData.date = datePart;
+                typingData.start = timePart;
+                jsonText = JSON.stringify(typingData);
+                localStorage.setItem('typingData', jsonText);
+
+                recentRecord.innerText = `『${typingData.title}』に挑戦中(${typingData.start}開始)`;
+                result1.innerText = `トレーニングを開始しました!(『${typingData.title}』);`
+            }
+
+            if (typingData.now == "doing") {
+                let result = confirm("未完了のデータを消します。よろしいですか？");
+
+                if (result) {
+                    alert("訓練を開始しました！");
+                    updateAtStart();
+                } else {
+                    alert("キャンセルの場合は、終了データを入力してください！");
+                }
+            } else {
+                updateAtStart();
+            }
+
+        });
+
+
+
+        // async function sendData(formId, result) {
+        //     const form = document.getElementById(formId);
+        //     const formData = new FormData(form);
+        //   try {
+        //         const response = await fetch("", {
+        //             method: 'POST',
+        //             body: formData
+        //         });
+        //         const resultText = await response.text();
+        //         result.innerText = resultText;
+        //     } catch (error) {
+        //         result.innerText = '送信エラーが発生しました。';
+        //     }
+        // }
+
+        // ボタン2が押されたとき
+        document.getElementById('form2').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const now = new Date();
+            const datePart = now.toLocaleDateString('sv-SE');
+            const timePart = now.toLocaleTimeString('ja-JP', {
+                hour12: false
+            });
+            if (typingData.now == "doing") {
+                typingData.now = "done";
+                typingData.speed = speed.value;
+                typingData.accuracy = accuracy.value;
+                typingData.end = timePart;
+                jsonText = JSON.stringify(typingData);
+                localStorage.setItem('typingData', jsonText);
+                console.log(jsonText);
+                recentRecord.innerText = `『${typingData.title}』をやりました。(${typingData.speed}key/s,${typingData.accuracy}%)`;
+
+                localData.value = jsonText;
+
+
+                //    sendData('form2', result2);
+                jsonTextAll = jsonTextAll=="[]"? `[${jsonText}]` : jsonTextAll.slice(0, -1) + "," + jsonText + "]";
+                localStorage.setItem('typingDataAll', jsonTextAll);
+
+                console.log(jsonTextAll);
+
+            } else if (typingData.now == "done") {
+
+                alert("すでに終了処理をしています！");
+            } else {
+                alert("開始データがありません！");
+            }
+
+
+
+
+
+
+        });
+
+
+const recordArea=document.getElementById("record-area");
+const recordBtn=document.getElementById("record-btn");
+ 
+recordBtn.addEventListener("click",()=>{
+    const typingDataAll=JSON.parse(jsonTextAll);
+const typingDataMatrix = typingDataAll.map(obj=> {
+    const arr = Object.values(obj);
+    arr.shift();
+    return arr;    
+});
+console.log(typingDataMatrix);
+  recordArea.innerHTML="";
+        const trs = [];
+        const tds = [];
+        const table = document.createElement("table");
+        recordArea.appendChild(table);
+        for (i = 0; i < typingDataMatrix.length + 1; i++) {
+            const tr = document.createElement("tr");
+            trs[i] = tr;
+            tds[i] = [];
+            for (j = 0; j < 8 + 1; j++) {
+                const td = document.createElement("td"); 
+                tds[i][j] = td;
+                
+                tr.appendChild(td);
+            } 
+            table.appendChild(tr);
+            tds[i][0].textContent=i+1;
+        }
+        
+        typingDataMatrix.forEach((x,index1)=>x.forEach((y,index2)=>tds[index1+1][index2+1].textContent=y));
+        ["","曲名","体調","日付","開始時間","速さ","正確性","終了時間"].forEach((x,index)=>tds[0][index].textContent=x);
+
+})
+    </script>
+</body>
+
+</html>
