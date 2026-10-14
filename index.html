@@ -75,10 +75,12 @@
         const updateRecentRecord = () => {
 
             if (jsonText !== null) {
-                if (typingData.now == "done") {
-                    recentRecord.innerText = `前回の記録:『${typingData.title}』${typingData.speed}key/s,${typingData.accuracy}%(${typingData.date}に挑戦)`;
-                } else {
+                if (typingData.now == "doing") {
+                    
                     recentRecord.innerText = `『${typingData.title}』に挑戦中(${typingData.date}${typingData.start}開始)`;
+                } else {
+            
+                    recentRecord.innerText = `前回の記録:『${typingData.title}』${typingData.speed}key/s,${typingData.accuracy}%(${typingData.date}に挑戦)`;
                 }
             } else {
                 recentRecord.innerText = "（ローカルストレージに記録はありません）";
