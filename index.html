@@ -261,7 +261,7 @@ console.log(typingDataMatrix);
                 tr.appendChild(td);
             } 
             table.appendChild(tr);
-            tds[i][0].textContent=i+1;
+            tds[i][0].textContent=i;
         }
         
         typingDataMatrix.forEach((x,index1)=>x.forEach((y,index2)=>tds[index1+1][index2+1].textContent=y));
